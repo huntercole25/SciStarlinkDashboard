@@ -2,10 +2,11 @@ name: Update Starlink Dashboard
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # Every 10 minutes
-
-  # Allow manual runs
+    - cron: '*/10 * * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:

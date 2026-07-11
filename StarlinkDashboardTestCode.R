@@ -72,8 +72,6 @@ get_starlink_daily_usage <- function(token,
 
 extract_today_usage <- function(usage_raw) {
   
-  library(data.table)
-  
   results <- usage_raw$content$results[[1]]
   
   # Extract every daily record from every billing cycle
@@ -162,13 +160,14 @@ ggplot(LongUse, aes(date, GB, fill = DataCategory))+
 
 csv <- "starlink_daily_usage.csv"
 
-if (file.exists(csv)) {
-  old <- fread(csv)
+old <- fread(csv)
+
+if (!usage_dt$date %in% old$date) {
+  fwrite(usage_dt, csv, append = TRUE)
+}else{
+  old <- old[!date == usage_dt$date]
   
-  if (!today_usage$date %in% old$date) {
-    fwrite(today_usage, csv, append = TRUE)
-  }
+  NewOld <- rbind(old, usage_dt)
   
-} else {
-  fwrite(today_usage, csv)
+  fwrite(NewOld, csv)
 }

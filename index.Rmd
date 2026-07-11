@@ -231,7 +231,7 @@ ggplotly(Period_Boxplot)
 Column {.tabset data-width=350}
 -----------------------------------------------------------------------
 ### Use Metrics
-**```{r}
+```{r}
 UseGauge <- gauge(TotalUsed, 0, 2000, gaugeSectors(c(0,1000), c(1000,1500), c(1500,5000)), label = "Total Data Use (GB)")
 
 RecomendGauge <- gauge(usage_dt$priorityGB, 0, 66.66, gaugeSectors(c(0,40), c(40,50), c(50,500)), label = "Daily Data Use (GB)")
@@ -240,5 +240,5 @@ fillCol(
   fillRow(UseGauge, RecomendGauge),
   fillRow(paste0("Recommended Max. Daily Use for Remainder of Billing Period: ", round(MeanAllowedPerDay, 1), " GB")), flex = c(1,5)
 )
-```**
+```
 

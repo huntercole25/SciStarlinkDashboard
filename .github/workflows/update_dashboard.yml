@@ -12,9 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     env:
       STARLINK_CLIENT_ID: ${{ secrets.STARLINK_CLIENT_ID }}
       STARLINK_CLIENT_SECRET: ${{ secrets.STARLINK_CLIENT_SECRET }}

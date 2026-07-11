@@ -3,10 +3,6 @@ library(data.table)
 library(ggplot2)
 library(tidyr)
 
-
-STARLINK_CLIENT_ID <- "e77634c7-9f28-481f-8546-777ce3a9de9c"
-STARLINK_CLIENT_SECRET <- "BirdsArentReal25!BirdsArentReal25!"
-
 # ---- Get Starlink bearer token ----
 
 get_starlink_token <- function() {
@@ -144,19 +140,19 @@ usage_dt <- extract_today_usage(usage_raw)
 
 billing_cycle <- extract_current_billing_cycle(usage_raw)
 
-DateFiller <- data.table(date = seq.Date(billing_cycle$billing_cycle_start, billing_cycle$billing_cycle_end, 1))
-
-FilledUse <- merge(DateFiller, usage_dt, all.x = T)
-
-FilledUse[is.na(priorityGB), priorityGB := 0]
-FilledUse[is.na(optInPriorityGB), optInPriorityGB := 0]
-FilledUse[is.na(standardGB), standardGB := 0]
-FilledUse[is.na(nonBillableGB), nonBillableGB := 0]
-
-LongUse <- as.data.table(pivot_longer(FilledUse, c("priorityGB", "optInPriorityGB", "standardGB", "nonBillableGB"), names_to = "DataCategory", values_to = "GB"))
-
-ggplot(LongUse, aes(date, GB, fill = DataCategory))+
-  geom_col()
+# DateFiller <- data.table(date = seq.Date(billing_cycle$billing_cycle_start, billing_cycle$billing_cycle_end, 1))
+# 
+# FilledUse <- merge(DateFiller, usage_dt, all.x = T)
+# 
+# FilledUse[is.na(priorityGB), priorityGB := 0]
+# FilledUse[is.na(optInPriorityGB), optInPriorityGB := 0]
+# FilledUse[is.na(standardGB), standardGB := 0]
+# FilledUse[is.na(nonBillableGB), nonBillableGB := 0]
+# 
+# LongUse <- as.data.table(pivot_longer(FilledUse, c("priorityGB", "optInPriorityGB", "standardGB", "nonBillableGB"), names_to = "DataCategory", values_to = "GB"))
+# 
+# ggplot(LongUse, aes(date, GB, fill = DataCategory))+
+#   geom_col()
 
 csv <- "starlink_daily_usage.csv"
 
@@ -164,6 +160,8 @@ old <- fread(csv)
 
 if (!usage_dt$date %in% old$date) {
   fwrite(usage_dt, csv, append = TRUE)
+  
+  NewOld <- fread(csv)
 }else{
   old <- old[!date == usage_dt$date]
   
@@ -171,3 +169,20 @@ if (!usage_dt$date %in% old$date) {
   
   fwrite(NewOld, csv)
 }
+
+PeriodData <- NewOld[date %in% seq.Date(billing_cycle$billing_cycle_start, billing_cycle$billing_cycle_end, 1)]
+
+TotalUsed <- PeriodData[,sum(priorityGB)]
+
+Remaining <- 2000 - TotalUsed
+
+MeanAllowedPerDay <- PeriodData[,(2000 - sum(priorityGB))/(as.numeric(billing_cycle$billing_cycle_end) - as.numeric(max(PeriodData$date)) + 1)]
+
+LongPeriod <- as.data.table(pivot_longer(PeriodData, 2:length(PeriodData), names_to = "DataCategory", values_to = "GB"))
+
+ggplot(LongPeriod, aes(date, GB, fill = DataCategory))+
+  geom_col()
+
+ggplot(PeriodData, aes(y = priorityGB))+
+  geom_boxplot()+
+  geom_jitter(width = 0.2, height = 0, x = 0, size = 3, alpha = 0.6)

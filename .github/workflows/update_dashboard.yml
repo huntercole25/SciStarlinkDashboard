@@ -1,0 +1,60 @@
+name: Update Starlink Dashboard
+
+on:
+  schedule:
+    # Run at the top of every hour
+    - cron: '0 * * * *'
+
+  # Allow manual runs
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    env:
+      STARLINK_CLIENT_ID: ${{ secrets.STARLINK_CLIENT_ID }}
+      STARLINK_CLIENT_SECRET: ${{ secrets.STARLINK_CLIENT_SECRET }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev
+
+      - name: Install R packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+            cache: true
+            cache-version: 1
+
+      - name: Render dashboard
+        run: |
+          Rscript -e "rmarkdown::render('index.Rmd')"
+
+      - name: Commit updated files
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add .
+
+          git diff --cached --quiet || git commit -m "Automatic dashboard update"
+
+          git push

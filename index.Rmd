@@ -238,7 +238,10 @@ RecomendGauge <- gauge(usage_dt$priorityGB, 0, 66.66, gaugeSectors(c(0,40), c(40
 
 fillCol(
   fillRow(UseGauge, RecomendGauge),
-  fillRow(paste0("Recommended Max. Daily Use for Remainder of Billing Period: ", round(MeanAllowedPerDay, 1), " GB")), flex = c(1,5)
+  fillRow(paste0("Recommended Max. Daily Use for Remainder of Billing Period: ", round(MeanAllowedPerDay, 1), " GB")),
+  fillRow(paste0("First Day of Billing Period: ", billing_cycle$billing_cycle_start)),
+  fillRow(paste0("Last Day of Billing Period: ", billing_cycle$billing_cycle_end)),
+  fillRow(NULL), flex = c(2,1,1,1,5)
 )
 ```
 

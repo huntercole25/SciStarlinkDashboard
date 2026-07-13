@@ -209,6 +209,29 @@ Period_Boxplot <- ggplot(PeriodData, aes(y = priorityGB))+
   geom_jitter(width = 0.2, height = 0, x = 0, size = 3, alpha = 0.6, aes(text = tooltip))+
   labs(y = "Data Use (GB)")
 
+QQ_Slope <- 2000/as.numeric(billing_cycle$billing_cycle_end - billing_cycle$billing_cycle_start)
+
+QQ_Tab <- data.table(Num = 1:as.numeric(billing_cycle$billing_cycle_end - billing_cycle$billing_cycle_start),
+                     date = seq.Date(billing_cycle$billing_cycle_start, billing_cycle$billing_cycle_end-1, 1))
+
+QQ_Tab[,QQ_Val := Num*QQ_Slope]
+
+Cum_List <- list()
+
+for(i in sort(unique(PeriodData$date))){
+  Cum_List <- c(Cum_List, list(data.table(date = i, GbUsed = PeriodData[date <= i, sum(priorityGB)])))
+}
+
+CumTab <- rbindlist(Cum_List)
+
+CumTab[,date := as.Date(date)]
+
+Cum_QQ <- ggplot(CumTab, aes(date, GbUsed))+
+  geom_line(data = QQ_Tab, aes(date, QQ_Val), color = "blue", linewidth = 1.5, linetype = 2)+
+  geom_line(linewidth = 0.75, alpha = 0.6)+
+  geom_point(size = 2.5, alpha = 0.6)+
+  labs(x = "Date", y = "Cummulative Data Use (GB)")
+
 ```
 
 Last Update: `r format(with_tz(Sys.time(), "America/Los_Angeles"), "%y %b %d %H:%M")`        ***All dates use GMT/UTC***
@@ -226,6 +249,11 @@ ggplotly(Period_DailyUse)
 
 ```{r}
 ggplotly(Period_Boxplot)
+```
+
+### Cummulative Q-Q Plot
+```{r}
+ggplotly(Cum_QQ)
 ```
 
 Column {.tabset data-width=350}
